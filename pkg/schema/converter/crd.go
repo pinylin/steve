@@ -1,6 +1,8 @@
 package converter
 
 import (
+	"strings"
+
 	"github.com/rancher/apiserver/pkg/types"
 	"github.com/rancher/steve/pkg/attributes"
 	"github.com/rancher/steve/pkg/schema/table"
@@ -27,13 +29,18 @@ var (
 	}
 )
 
-func AddCustomResources(crd apiextv1.CustomResourceDefinitionClient, schemas map[string]*types.APISchema) error {
+func AddCustomResources(crd apiextv1.CustomResourceDefinitionClient, schemas map[string]*types.APISchema) (map[string]bool, error) {
+	groups := make(map[string]bool, 0)
 	crds, err := crd.List(metav1.ListOptions{})
 	if err != nil {
-		return nil
+		return groups, nil
 	}
 
 	for _, crd := range crds.Items {
+		if !strings.Contains(crd.Name, "cattle.io") {
+			groups[crd.Spec.Group] = true
+			continue
+		}
 		if crd.Status.AcceptedNames.Plural == "" {
 			continue
 		}
@@ -45,7 +52,7 @@ func AddCustomResources(crd apiextv1.CustomResourceDefinitionClient, schemas map
 		}
 	}
 
-	return nil
+	return groups, nil
 }
 
 func forVersion(crd *v1.CustomResourceDefinition, group, kind string, version v1.CustomResourceDefinitionVersion, schemasMap map[string]*types.APISchema) {
