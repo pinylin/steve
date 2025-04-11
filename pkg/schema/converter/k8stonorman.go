@@ -45,11 +45,12 @@ func ToSchemas(crd v1.CustomResourceDefinitionClient, client discovery.Discovery
 		return nil, err
 	}
 
-	if err := AddDiscovery(client, result); err != nil {
+	crdGroupsNotCattle, err := AddCustomResources(crd, result)
+	if err != nil {
 		return nil, err
 	}
 
-	if err := AddCustomResources(crd, result); err != nil {
+	if err := AddDiscovery(client, result, crdGroupsNotCattle); err != nil {
 		return nil, err
 	}
 
