@@ -172,7 +172,7 @@ func (s *Store) userChangeNotify(ctx context.Context, user user.Info) chan inter
 			select {
 			case <-ctx.Done():
 				return
-			case <-time.After(2 * time.Second):
+			case <-time.After(10 * time.Second):
 			}
 
 			newAS := s.asl.AccessFor(user)
