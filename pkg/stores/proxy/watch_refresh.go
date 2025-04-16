@@ -31,7 +31,7 @@ func (w *WatchRefresh) Watch(apiOp *types.APIRequest, schema *types.APISchema, w
 			select {
 			case <-ctx.Done():
 				return
-			case <-time.After(10 * time.Second):
+			case <-time.After(2 * time.Second):
 			}
 
 			newAs := w.asl.AccessFor(user)
