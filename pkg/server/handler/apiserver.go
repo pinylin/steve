@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/rancher/apiserver/pkg/server"
 	apiserver "github.com/rancher/apiserver/pkg/server"
@@ -64,12 +65,14 @@ func (a *apiServer) common(rw http.ResponseWriter, req *http.Request) (*types.AP
 		return nil, false
 	}
 
+	logrus.Infof("[apiServer.common] 1: time: %s", time.Now().String())
 	schemas, err := a.sf.Schemas(user)
 	if err != nil {
 		logrus.Errorf("HTTP request failed: %v", err)
 		rw.Write([]byte(err.Error()))
 		rw.WriteHeader(http.StatusInternalServerError)
 	}
+	logrus.Infof("[apiServer.common] 2: time: %s", time.Now().String())
 
 	urlBuilder, err := urlbuilder.NewPrefixed(req, schemas, "v1")
 	if err != nil {
@@ -95,7 +98,9 @@ func (a *apiServer) apiHandler(apiFunc APIFunc) http.Handler {
 			if apiFunc != nil {
 				apiFunc(a.sf, apiOp)
 			}
+			logrus.Infof("[apiHandler.Handle] 1: time: %s", time.Now().String())
 			a.server.Handle(apiOp)
+			logrus.Infof("[apiHandler.Handle] 2: time: %s", time.Now().String())
 		}
 	})
 }

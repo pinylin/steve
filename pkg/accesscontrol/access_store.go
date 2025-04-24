@@ -58,7 +58,7 @@ func (l *AccessStore) AccessFor(user user.Info) *AccessSet {
 
 	if l.cache != nil {
 		result.ID = cacheKey
-		l.cache.Add(cacheKey, result, 24*time.Hour)
+		l.cache.Add(cacheKey, result, 720*time.Hour)
 	}
 
 	return result

@@ -9,6 +9,7 @@ import (
 	"github.com/rancher/apiserver/pkg/types"
 	"github.com/rancher/steve/pkg/accesscontrol"
 	"github.com/rancher/steve/pkg/attributes"
+	"github.com/sirupsen/logrus"
 	"k8s.io/apiserver/pkg/authentication/user"
 )
 
@@ -22,18 +23,22 @@ func newSchemas() (*types.APISchemas, error) {
 }
 
 func (c *Collection) Schemas(user user.Info) (*types.APISchemas, error) {
+	logrus.Infof("[Collection.Schemas] 1: time: %s", time.Now().String())
 	access := c.as.AccessFor(user)
 	c.removeOldRecords(access, user)
 	val, ok := c.cache.Get(access.ID)
 	if ok {
+		logrus.Infof("[Collection.Schemas] 2: time: %s,  hit cache", time.Now().String())
 		schemas, _ := val.(*types.APISchemas)
 		return schemas, nil
 	}
 
+	logrus.Infof("[Collection.Schemas] 3: time: %s, missing cache", time.Now().String())
 	schemas, err := c.schemasForSubject(access)
 	if err != nil {
 		return nil, err
 	}
+	logrus.Infof("[Collection.Schemas] 4: time: %s, end", time.Now().String())
 	c.addToCache(access, user, schemas)
 	return schemas, nil
 }
@@ -74,7 +79,7 @@ func (c *Collection) schemasForSubject(access *accesscontrol.AccessSet) (*types.
 	if err := result.AddSchemas(c.baseSchema); err != nil {
 		return nil, err
 	}
-
+	logrus.Infof("[Collection.schemasForSubject] 1: time: %s", time.Now().String())
 	for _, s := range c.schemas {
 		gr := attributes.GR(s)
 
@@ -155,7 +160,7 @@ func (c *Collection) schemasForSubject(access *accesscontrol.AccessSet) (*types.
 			return nil, err
 		}
 	}
-
+	logrus.Infof("[Collection.schemasForSubject] 1: time: %s, end", time.Now().String())
 	result.Attributes = map[string]interface{}{
 		"accessSet": access,
 	}
