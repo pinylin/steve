@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"fmt"
+	"math/rand"
 	"net/http"
 	"time"
 
@@ -65,14 +67,14 @@ func (a *apiServer) common(rw http.ResponseWriter, req *http.Request) (*types.AP
 		return nil, false
 	}
 
-	logrus.Infof("[apiServer.common] 1: time: %s", time.Now().String())
+	logrus.Infof("[apiServer.common] 1: flag: %s, time: %s", req.Header.Get("flag"), time.Now().String())
 	schemas, err := a.sf.Schemas(user)
 	if err != nil {
 		logrus.Errorf("HTTP request failed: %v", err)
 		rw.Write([]byte(err.Error()))
 		rw.WriteHeader(http.StatusInternalServerError)
 	}
-	logrus.Infof("[apiServer.common] 2: time: %s", time.Now().String())
+	logrus.Infof("[apiServer.common] 2: flag: %s, time: %s", req.Header.Get("flag"), time.Now().String())
 
 	urlBuilder, err := urlbuilder.NewPrefixed(req, schemas, "v1")
 	if err != nil {
@@ -93,14 +95,17 @@ type APIFunc func(schema.Factory, *types.APIRequest)
 
 func (a *apiServer) apiHandler(apiFunc APIFunc) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		rand.Seed(time.Now().UnixNano())
+		id := fmt.Sprintf("%08d", rand.Intn(100000000))
+		req.Header.Set("flag", id)
 		apiOp, ok := a.common(rw, req)
 		if ok {
 			if apiFunc != nil {
 				apiFunc(a.sf, apiOp)
 			}
-			logrus.Infof("[apiHandler.Handle] 1: time: %s", time.Now().String())
+			logrus.Infof("[apiHandler.Handle] 1: flag: %s, time: %s", id, time.Now().String())
 			a.server.Handle(apiOp)
-			logrus.Infof("[apiHandler.Handle] 2: time: %s", time.Now().String())
+			logrus.Infof("[apiHandler.Handle] 2: flag: %s, time: %s", id, time.Now().String())
 		}
 	})
 }
