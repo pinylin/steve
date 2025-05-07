@@ -299,13 +299,16 @@ func (s *Store) List(apiOp *types.APIRequest, schema *types.APISchema) (types.AP
 }
 
 func (s *Store) list(apiOp *types.APIRequest, schema *types.APISchema, client dynamic.ResourceInterface) (types.APIObjectList, error) {
+	logrus.Infof("proxy_store list:1 flag: %s, time: %s", apiOp.Request.Header.Get("flag"), time.Now().String())
 	opts := metav1.ListOptions{}
 	if err := decodeParams(apiOp, &opts); err != nil {
 		return types.APIObjectList{}, nil
 	}
 
 	if revision := parseRevision(apiOp); revision != "" {
+		logrus.Infof("proxy_store list getCache:1 flag: %s, time: %s", apiOp.Request.Header.Get("flag"), time.Now().String())
 		list, err := s.getCache(getCacheKey(apiOp.Request.URL.Path, revision, apiOp.Namespace, opts.Continue))
+		logrus.Infof("proxy_store list getCache:2 flag: %s, time: %s", apiOp.Request.Header.Get("flag"), time.Now().String())
 		if err != nil {
 			if !errors.Is(cacheNotFoundErr, err) {
 				return types.APIObjectList{}, err
@@ -316,7 +319,9 @@ func (s *Store) list(apiOp *types.APIRequest, schema *types.APISchema, client dy
 			Continue: list.GetContinue(),
 		}
 		if list != nil {
+			logrus.Infof("proxy_store list tableToList:1 flag: %s, time: %s", apiOp.Request.Header.Get("flag"), time.Now().String())
 			tableToList(list)
+			logrus.Infof("proxy_store list tableToList:2 flag: %s, time: %s", apiOp.Request.Header.Get("flag"), time.Now().String())
 			for i := range list.Items {
 				result.Objects = append(result.Objects, toAPI(schema, (&list.Items[i]).DeepCopy()))
 			}
@@ -329,7 +334,7 @@ func (s *Store) list(apiOp *types.APIRequest, schema *types.APISchema, client dy
 	if err != nil {
 		return types.APIObjectList{}, err
 	}
-
+	logrus.Infof("proxy_store list:2 flag: %s, time: %s", apiOp.Request.Header.Get("flag"), time.Now().String())
 	tableToList(resultList)
 
 	if resourceVersion := resultList.GetResourceVersion(); resourceVersion != "" {
@@ -343,11 +348,11 @@ func (s *Store) list(apiOp *types.APIRequest, schema *types.APISchema, client dy
 		Revision: resultList.GetResourceVersion(),
 		Continue: resultList.GetContinue(),
 	}
-
+	logrus.Infof("proxy_store list:3 flag: %s, time: %s", apiOp.Request.Header.Get("flag"), time.Now().String())
 	for i := range resultList.Items {
 		result.Objects = append(result.Objects, toAPI(schema, (&resultList.Items[i]).DeepCopy()))
 	}
-
+	logrus.Infof("proxy_store list:4 flag: %s, time: %s", apiOp.Request.Header.Get("flag"), time.Now().String())
 	return result, nil
 }
 
