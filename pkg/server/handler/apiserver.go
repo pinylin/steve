@@ -1,8 +1,6 @@
 package handler
 
 import (
-	"fmt"
-	"math/rand"
 	"net/http"
 	"time"
 
@@ -95,17 +93,15 @@ type APIFunc func(schema.Factory, *types.APIRequest)
 
 func (a *apiServer) apiHandler(apiFunc APIFunc) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-		rand.Seed(time.Now().UnixNano())
-		id := fmt.Sprintf("%08d", rand.Intn(100000000))
-		req.Header.Set("flag", id)
+		logrus.Infof("api start: type: %s, flag: %s, time: %s", req.URL, req.Header.Get("flag"), time.Now().String())
 		apiOp, ok := a.common(rw, req)
 		if ok {
 			if apiFunc != nil {
 				apiFunc(a.sf, apiOp)
 			}
-			logrus.Infof("[apiHandler.Handle] 1: flag: %s, time: %s", id, time.Now().String())
+			logrus.Infof("[apiHandler.Handle] 1: type: %s,  flag: %s, time: %s", apiOp.Request.URL, apiOp.Request.Header.Get("flag"), time.Now().String())
 			a.server.Handle(apiOp)
-			logrus.Infof("[apiHandler.Handle] 2: flag: %s, time: %s", id, time.Now().String())
+			logrus.Infof("[apiHandler.Handle] 2: type: %s, flag: %s, time: %s", apiOp.Request.URL, apiOp.Request.Header.Get("flag"), time.Now().String())
 		}
 	})
 }
